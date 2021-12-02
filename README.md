@@ -35,8 +35,8 @@ We will use Vagrant and the configured virtul machines, this will create three
 servers; `vault` which is the Vault server and two managed hosts named
 `server01` and `server02`.
 
-The Vault server will have the IP address 192.168.56.40, and the two hosts
-will use 192.168.56.41 and 192.168.56.42.
+The Vault server will have the IP address `192.168.56.40`, and the two hosts
+will use `192.168.56.41` and `192.168.56.42`.
 
 Make sure to update the addresses if you decide to use another environment.
 
@@ -163,7 +163,7 @@ which allows users to authenticate with Vault using a username and password
 combination.
 
 After `userpass` has been enabled, the user `vagrant` with the password
-`HorsePassport` with the `ansible` policy will be created.
+`HorsePassport` using the `ansible` policy will be created.
 
 ```sh
 $ vault auth enable userpass
