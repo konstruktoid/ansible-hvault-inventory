@@ -1,0 +1,48 @@
+---
+- hosts: all
+  gather_facts: 'no'
+  any_errors_fatal: true
+  tasks:
+    - name: get ssh host keys from vault_hosts group
+      delegate_to: localhost
+      lineinfile:
+        dest: ~/.ssh/known_hosts
+        create: 'yes'
+        state: present
+        mode: '0600'
+        line: "{{ lookup('pipe', 'ssh-keyscan -t ssh-ed25519' + ' ' + hostvars[item]['ansible_host']) }}"
+      with_items:
+        - "{{ groups['vault_hosts']|list }}"
+
+    - name: grep authentication string from /var/log/vault-ssh.log
+      become: 'yes'
+      environment:
+        PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      shell: |
+        set -o pipefail
+        grep 'authenticated!$' /var/log/vault-ssh.log | tail -n1
+      args:
+        executable: /bin/bash
+      register: vault_ssh
+      changed_when: vault_ssh.rc != 0
+
+    - name: grep keyboard-interactive from /var/log/auth.log
+      become: 'yes'
+      environment:
+        PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      shell: |
+        set -o pipefail
+        grep 'keyboard-interactive/pam for.*ssh2$' /var/log/auth.log | tail -n1
+      args:
+        executable: /bin/bash
+      register: auth_log
+      changed_when: auth_log.rc != 0
+
+    - name: print authentication string
+      debug:
+        msg: "{{ vault_ssh.stdout }}"
+
+    - name: print keyboard-interactive
+      debug:
+        msg: "{{ auth_log.stdout }}"
+...
