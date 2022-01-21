@@ -6,9 +6,15 @@ script that supports a basic K/V setup (`hostname`:`ip`) but also supports
 functionality and the [Vault Password Generator](https://github.com/sethvargo/vault-secrets-gen)
 plugin for local password rotation.
 
-## Usage
+## Documentation
 
-_Please read the documentation for details._
+In [part one](./ssh_otp.md) HashiCorp Vault and the inventory script is used to
+set up OTP SSH authentication.
+
+In addition to SSH OTP, instructions on how to rotate local user passwords are
+available in [part 2](./random_password.md).
+
+## Usage
 
 ```console
 usage: hvault_inventory.py [-h] [-l] [-o] [-p]
@@ -97,14 +103,6 @@ directory.
 
 Vault policies are available in the [./vault_policies](./vault_policies/)
 directory.
-
-## Documentation
-
-In [part one](./ssh_otp.md) HashiCorp Vault and the inventory script is used to
-set up OTP SSH authentication.
-
-In addition to SSH OTP, instructions on how to rotate local user passwords are
-available in [part 2](./random_password.md).
 
 ### Links
 
