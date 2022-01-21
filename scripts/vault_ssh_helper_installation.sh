@@ -1,5 +1,4 @@
 #!/bin/sh
-
 set -eux
 
 VAULT_SSH_VERSION="0.2.1"
