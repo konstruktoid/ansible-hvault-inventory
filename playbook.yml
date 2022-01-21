@@ -14,6 +14,16 @@
       with_items:
         - "{{ groups['vault_hosts']|list }}"
 
+    - name: print ansible_password
+      ansible.builtin.debug:
+        msg: "{{ ansible_password }}"
+      when: ansible_password is defined
+
+    - name: print ansible_become_password
+      ansible.builtin.debug:
+        msg: "{{ ansible_become_password }}"
+      when: ansible_become_password is defined
+
     - name: grep authentication string from /var/log/vault-ssh.log
       become: 'yes'
       environment:
