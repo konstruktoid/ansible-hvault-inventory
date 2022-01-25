@@ -89,7 +89,7 @@ token_renewable      true
 token_policies       ["default" "rotate-linux"]
 identity_policies    []
 policies             ["default" "rotate-linux"]
-``´
+```
 
 The `token` value should be used as the `VAULT_TOKEN` on the managed servers,
 and both `VAULT_ADDR` and `VAULT_TOKEN` should be present in `/etc/environment`
@@ -214,4 +214,4 @@ ok: [server02] => {
 PLAY RECAP *********************************************************************
 server01                   : ok=7    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
 server02                   : ok=7    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
-``
+```
