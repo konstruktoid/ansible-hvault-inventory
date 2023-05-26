@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 # Licensed under the Apache License, Version 2.0
 """
 Populate a Ansible inventory with information from HashiCorp Vault and
@@ -9,6 +8,7 @@ import argparse
 import os
 import sys
 from io import BytesIO
+
 import hvac
 import pycurl
 
