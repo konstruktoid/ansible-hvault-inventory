@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # Licensed under the Apache License, Version 2.0
-"""
+"""HashiCorp Vault dynamic Ansible inventory.
+
 Populate a Ansible inventory with information from HashiCorp Vault and
 use SSH OTP for host access.
 """
