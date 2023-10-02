@@ -1,34 +1,35 @@
 ---
-- hosts: all
-  gather_facts: 'no'
+- name: Test Hashicorp Vault dynamic inventory
+  hosts: all
+  gather_facts: false
   any_errors_fatal: true
   tasks:
-    - name: get ssh host keys from vault_hosts group
+    - name: Get ssh host keys from vault_hosts group
       delegate_to: localhost
-      lineinfile:
+      ansible.builtin.lineinfile:
         dest: ~/.ssh/known_hosts
-        create: 'yes'
+        create: true
         state: present
-        mode: '0600'
+        mode: "0600"
         line: "{{ lookup('pipe', 'ssh-keyscan -t ssh-ed25519' + ' ' + hostvars[item]['ansible_host']) }}"
       with_items:
-        - "{{ groups['vault_hosts']|list }}"
+        - "{{ groups['vault_hosts'] | list }}"
 
-    - name: print ansible_password
+    - name: Print ansible_password
       ansible.builtin.debug:
         msg: "{{ ansible_password }}"
       when: ansible_password is defined
 
-    - name: print ansible_become_password
+    - name: Print ansible_become_password
       ansible.builtin.debug:
         msg: "{{ ansible_become_password }}"
       when: ansible_become_password is defined
 
-    - name: grep authentication string from /var/log/vault-ssh.log
-      become: 'yes'
+    - name: Grep authentication string from /var/log/vault-ssh.log
+      become: true
       environment:
         PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-      shell: |
+      ansible.builtin.shell: |
         set -o pipefail
         grep 'authenticated!$' /var/log/vault-ssh.log | tail -n1
       args:
@@ -36,11 +37,11 @@
       register: vault_ssh
       changed_when: vault_ssh.rc != 0
 
-    - name: grep keyboard-interactive from /var/log/auth.log
-      become: 'yes'
+    - name: Grep keyboard-interactive from /var/log/auth.log
+      become: true
       environment:
         PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-      shell: |
+      ansible.builtin.shell: |
         set -o pipefail
         grep 'keyboard-interactive/pam for.*ssh2$' /var/log/auth.log | tail -n1
       args:
@@ -48,11 +49,10 @@
       register: auth_log
       changed_when: auth_log.rc != 0
 
-    - name: print authentication string
-      debug:
+    - name: Print authentication string
+      ansible.builtin.debug:
         msg: "{{ vault_ssh.stdout }}"
 
-    - name: print keyboard-interactive
-      debug:
+    - name: Print keyboard-interactive
+      ansible.builtin.debug:
         msg: "{{ auth_log.stdout }}"
-...
