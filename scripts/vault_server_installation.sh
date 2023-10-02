@@ -2,22 +2,20 @@
 set -eux
 
 VAULT_PLUGIN_DIRECTORY="/etc/vault.d/plugins"
-PASSWORD_GEN_VERSION="0.1.6"
+PASSWORD_GEN_VERSION="0.1.7"
 PASSWORD_GEN_FILENAME="vault-secrets-gen_${PASSWORD_GEN_VERSION}_linux_amd64.zip"
-PASSWORD_GEN_CHECKSUM="915d22b11cd7cf1cabd6256b184f1f561668ef8b550e49fa257c9587f9dd58ae"
+PASSWORD_GEN_CHECKSUM="fadb56b9395689fdcffe002abf64df73a66130614efe09627601b129b891ca76"
 
 apt-get update
-apt-get -y install ansible curl jq libcurl4-openssl-dev libssl-dev \
-  python3-pip sshpass unzip
-
-pip3 install hvac pycurl
+apt-get --assume-yes upgrade
+apt-get --assume-yes install curl unzip
 
 curl -fsSL https://apt.releases.hashicorp.com/gpg |\
   tee /etc/apt/trusted.gpg.d/hashicorp.asc
 
 apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
 apt-get update
-apt-get -y install vault
+apt-get --assume-yes install vault
 
 if ! grep -q 'plugin_directory' /etc/vault.d/vault.hcl; then
   echo "plugin_directory = ${VAULT_PLUGIN_DIRECTORY}" >> /etc/vault.d/vault.hcl

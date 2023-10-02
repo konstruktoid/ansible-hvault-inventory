@@ -8,7 +8,7 @@ VAULT_SSH_FILENAME="vault-ssh-helper_${VAULT_SSH_VERSION}_linux_amd64.zip"
 VAULT_SERVER="192.168.56.40"
 
 apt-get update
-apt-get -y install unzip wget
+apt-get --assume-yes install unzip wget
 
 wget "https://releases.hashicorp.com/vault-ssh-helper/${VAULT_SSH_VERSION}/${VAULT_SSH_FILENAME}"
 
