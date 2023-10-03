@@ -6,7 +6,7 @@ Vagrant.configure(2) do |config|
   end
 
   config.vm.define "admin" do |admin|
-    admin.vm.box = "ubuntu/focal64"
+    admin.vm.box = "ubuntu/jammy64"
     admin.vm.network "private_network", ip:"192.168.56.39"
     admin.vm.hostname = "admin"
     admin.vm.boot_timeout = 600
@@ -15,8 +15,9 @@ Vagrant.configure(2) do |config|
   end
 
   config.vm.define "vault" do |vault|
-    vault.vm.box = "ubuntu/focal64"
+    vault.vm.box = "ubuntu/jammy64"
     vault.vm.network "private_network", ip:"192.168.56.40"
+    vault.vm.network "forwarded_port", guest: 8200, host: 8200
     vault.vm.hostname = "vault"
     vault.vm.boot_timeout = 600
     vault.vm.provision "shell",
@@ -25,7 +26,7 @@ Vagrant.configure(2) do |config|
 
   (1..2).each do |i|
     config.vm.define "server0#{i}" do |server|
-      server.vm.box = "ubuntu/focal64"
+      server.vm.box = "ubuntu/jammy64"
       server.vm.network "private_network", ip:"192.168.56.4#{i}"
       server.vm.hostname = "server0#{i}"
       server.vm.boot_timeout = 600
