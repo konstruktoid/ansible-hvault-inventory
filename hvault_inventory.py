@@ -23,7 +23,7 @@ try:
 except ImportError:
     from urllib import urlencode
 
-__version__ = "0.0.2"
+__version__ = "0.1.0"
 
 inventory = {}
 inventory["vault_hosts"] = []
@@ -43,6 +43,12 @@ parser.add_argument(
 )
 
 parser.add_argument(
+    "-m",
+    "--mount",
+    help="KV backend mount path",
+)
+
+parser.add_argument(
     "-o",
     "--otp-only",
     help="show only SSH OTP information",
@@ -54,6 +60,12 @@ parser.add_argument(
     "--password-only",
     help="show only local password information",
     action="store_true",
+)
+
+parser.add_argument(
+    "-s",
+    "--secret",
+    help="KV secret path",
 )
 
 args = parser.parse_args()
@@ -72,8 +84,15 @@ if not client.is_authenticated():
     print("Client is not authenticated.")
     sys.exit(1)
 
+mount = args.mount if args.mount else os.environ.get("VAULT_MOUNT", "secret")
+secret = args.secret if args.secret else os.environ.get("VAULT_SECRET", "ansible-hosts")
+
 try:
-    hosts_read_response = client.secrets.kv.read_secret_version(path="ansible-hosts")
+    hosts_read_response = client.secrets.kv.v2.read_secret_version(
+        mount_point=mount,
+        path=secret,
+        raise_on_deleted_version=True,
+    )
 except hvac.exceptions.InvalidPath as exception_string:
     print("InvalidPath Exception: ", str(exception_string), file=sys.stderr)
     sys.exit(1)
@@ -128,9 +147,10 @@ for host in hosts_read_response["data"]["data"]:
                 except KeyError:
                     pass
 
-            user_password_read_response = client.secrets.kv.read_secret_version(
-                path="linux/" + name + "/" + ANSIBLE_USER + "_creds",
+            user_password_read_response = client.secrets.kv.v2.read_secret_version(
                 mount_point="systemcreds",
+                path="linux/" + name + "/" + ANSIBLE_USER + "_creds",
+                raise_on_deleted_version=True,
             )
 
             for username in user_password_read_response["data"]["data"]:
