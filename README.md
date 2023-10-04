@@ -17,24 +17,59 @@ available in [part 2](./random_password.md).
 ## Usage
 
 ```console
-usage: hvault_inventory.py [-h] [-l] [-o] [-p]
+usage: hvault_inventory.py [-h] [-l] [-m MOUNT] [-o] [-p] [-s SECRET]
 
-optional arguments:
-  -h, --help           show this help message and exit
-  -l, --list           print the inventory
-  -o, --otp-only       show only SSH OTP information
-  -p, --password-only  show only local password information
+Dynamic HashiCorp Vault inventory.
+
+options:
+  -h, --help            show this help message and exit
+  -l, --list            print the inventory
+  -m MOUNT, --mount MOUNT
+                        KV backend mount path
+  -o, --otp-only        show only SSH OTP information
+  -p, --password-only   show only local password information
+  -s SECRET, --secret SECRET
+                        KV secret path
+
+version: 0.1.0
 ```
+
+### Environment variables
+
+`VAULT_MOUNT` which is the KV backend mount path with default "secret".
+
+`VAULT_SECRET` which is the KV secret path with default "ansible-hosts".
+
+`USER` sets the `ansible_user` variable, if `ansible_user` is not set.
+
+`VAULT_ADDR` and `VAULT_TOKEN` are the Vault server address and Vault token.
 
 ### Examples
 
 #### K/V
 
+With default `secret/ansible-hosts`:
+
 ```sh
 $ ansible-inventory -i hvault_inventory.py --list --yaml
 all:
   children:
-    ungrouped: {}
+    vault_hosts:
+      hosts:
+        server01:
+          ansible_host: 192.168.56.41
+          ansible_user: vagrant
+        server02:
+          ansible_host: 192.168.56.42
+          ansible_user: vagrant
+```
+
+Using environment variables:
+
+```sh
+$ VAULT_MOUNT=secret VAULT_SECRET=ansible-hosts ansible-inventory -i hvault_inventory.py --list --yaml
+all:
+  children:
     vault_hosts:
       hosts:
         server01:
@@ -48,7 +83,7 @@ all:
 Note that `ansible_user` is set using the `USER` environment variable if
 present and `ansible_user` has not been configured manually.
 
-_The `secret/ansible-hosts` path with at least one `hostname:ip` K/V need to
+_A path with at least one `hostname:ip` K/V need to
 exist since the other options will use this to retrive host information and
 build upon it._
 
