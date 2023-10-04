@@ -36,12 +36,12 @@ Ensure that the `VAULT_ADDR` and `VAULT_TOKEN` values are set on the Vault serve
 ```sh
 $ grep -Eo '(VAULT_ADDR|Root Token).*' /tmp/vault.log && grep -A2 'plugins are registered' /tmp/vault.log
 VAULT_ADDR='http://192.168.56.40:8200'
-Root Token: s.dCXFnEIKeZ7xFIq1wBYvXjTc
+Root Token: hvs.vDkyJoiMWV3JuBn9sqd7g307
 The following dev plugins are registered in the catalog:
     - vault-secrets-gen
 
 $ export VAULT_ADDR='http://192.168.56.40:8200'
-$ export VAULT_TOKEN='s.dCXFnEIKeZ7xFIq1wBYvXjTc'
+$ export VAULT_TOKEN='hvs.vDkyJoiMWV3JuBn9sqd7g307'
 ```
 
 Enable the `vault-secrets-gen` plugin:
@@ -62,7 +62,7 @@ Enable [KV Secrets Engine](https://www.vaultproject.io/docs/secrets/kv) with the
 `systemcreds/` path  on the Vault server:
 
 ```sh
-$ vault secrets enable -path="systemcreds" kv
+$ vault secrets enable -version=2 -path="systemcreds" kv
 Success! Enabled the kv secrets engine at: systemcreds/
 ```
 
@@ -73,6 +73,7 @@ Upload the [rotate-linux.hcl](./vault_policies/rotate-linux.hcl) and
 $ vault policy write rotate-linux rotate-linux.hcl
 Success! Uploaded policy: rotate-linux
 $ vault policy write linuxadmin linuxadmin.hcl
+Success! Uploaded policy: linuxadmin
 ```
 
 Create a authentication token for the `rotate-linux` policy with a 24 hour
@@ -82,8 +83,8 @@ lifetime.
 $ vault token create -period 24h -policy rotate-linux
 Key                  Value
 ---                  -----
-token                s.2pWWUE9CtMbDEO5tOIt5Qvrx
-token_accessor       wK5aqTyXrzEBu941I3zAWjYC
+token                hvs.CAESIA4OZQxuA8RSUeBIKrXe7Ui3wtrb0LDR0hb8xPlH2s8NGh4KHGh2cy45S2Zoc3lMS2tlYnp6dDJZTG5qS1VHVkM
+token_accessor       4I9EZYWOa7LaGh5K6uSpoxO6
 token_duration       24h
 token_renewable      true
 token_policies       ["default" "rotate-linux"]
@@ -104,10 +105,11 @@ On `vault`:
 
 ```sh
 $ vault write auth/userpass/users/vagrant password="HorsePassport" policies="ansible,linuxadmin"
+Success! Data written to: auth/userpass/users/vagrant
 ```
 
 Copy [rotate_linux_password.sh](scripts/rotate_linux_password.sh) to the managed
-servers and generate a password for the user.
+servers and generate a password for the user on each server.
 
 `bash ./rotate_linux_password.sh "$(id -un)"`
 
@@ -125,90 +127,84 @@ again. Future Vault requests will automatically use this token.
 
 Key                    Value
 ---                    -----
-token                  s.i4n9f5d053jyNsRgNj1W9rPt
-token_accessor         Hd59laHlSZyHAmdJiy45k2Cf
+token                  hvs.CAESILn3hivHCO8UNJmAxGuQjf2RNsj9Y0E_SPMklriwU42FGh4KHGh2cy44NXQ1b3lIOTRFUTFRdGVSNm1LUG9ZNDE
+token_accessor         jIdHDHIvHhptlM8druMRdDHN
 token_duration         768h
 token_renewable        true
 token_policies         ["ansible" "default" "linuxadmin"]
 identity_policies      []
 policies               ["ansible" "default" "linuxadmin"]
 token_meta_username    vagrant
-$ export VAULT_TOKEN='s.i4n9f5d053jyNsRgNj1W9rPt'
-$ ansible-inventory -i hvault_inventory.py --list
-$ ansible-inventory -i hvault_inventory.py --list --yaml
+$ export VAULT_TOKEN='hvs.CAESILn3hivHCO8UNJmAxGuQjf2RNsj9Y0E_SPMklriwU42FGh4KHGh2cy44NXQ1b3lIOTRFUTFRdGVSNm1LUG9ZNDE'
+$ ansible-inventory -i /vagrant/hvault_inventory.py --list --yaml
 all:
   children:
-    ungrouped: {}
     vault_hosts:
       hosts:
         server01:
-          ansible_become_password: sprain-doorpost-stylus-decent-strangely
+          ansible_become_password: uncurled-subtitle-unsocial-tightness-obstruct
           ansible_host: 192.168.56.41
-          ansible_password: ea3ef6ae-285e-26fa-1450-ed7217461d78
+          ansible_password: 7ff78fd7-3e40-6c53-f38d-5661b225f3a5
           ansible_port: 22
           ansible_user: vagrant
         server02:
-          ansible_become_password: pastrami-bullpen-recast-shallot-tinsmith
+          ansible_become_password: plethora-plod-jaybird-stopping-eternity
           ansible_host: 192.168.56.42
-          ansible_password: f7502d52-781a-e818-6edb-9ea374dbd032
+          ansible_password: 6b7e121d-01db-bea9-10e3-112fc4eb21b6
           ansible_port: 22
           ansible_user: vagrant
-$ ansible-playbook -i hvault_inventory.py playbook.yml
+$ ansible-playbook -i /vagrant/hvault_inventory.py /vagrant/playbook.yml
 
-PLAY [all] *********************************************************************
+PLAY [Test Hashicorp Vault dynamic inventory] **********************************
 
-TASK [get ssh host keys from vault_hosts group] ********************************
-# 192.168.56.41:22 SSH-2.0-OpenSSH_8.2p1 Ubuntu-4ubuntu0.4
-# 192.168.56.41:22 SSH-2.0-OpenSSH_8.2p1 Ubuntu-4ubuntu0.4
+TASK [Get ssh host keys from vault_hosts group] ********************************
+# 192.168.56.41:22 SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.4
+# 192.168.56.41:22 SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.4
 ok: [server01 -> localhost] => (item=server01)
 ok: [server02 -> localhost] => (item=server01)
-# 192.168.56.42:22 SSH-2.0-OpenSSH_8.2p1 Ubuntu-4ubuntu0.3
-# 192.168.56.42:22 SSH-2.0-OpenSSH_8.2p1 Ubuntu-4ubuntu0.3
-ok: [server02 -> localhost] => (item=server02)
+# 192.168.56.42:22 SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.4
+# 192.168.56.42:22 SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.4
 ok: [server01 -> localhost] => (item=server02)
+ok: [server02 -> localhost] => (item=server02)
 
-TASK [print ansible_password] **************************************************
+TASK [Print ansible_password] **************************************************
 ok: [server01] => {
-    "changed": false,
-    "msg": "93480236-d884-5179-2008-01f80a2d6f45"
+    "msg": "52e11780-81a4-0c21-b31b-0d2f9ffbc147"
 }
 ok: [server02] => {
-    "changed": false,
-    "msg": "a8d792cd-f3da-b037-f2b1-e18b6734cb76"
+    "msg": "d8396f42-1305-bd03-0a46-c4dcab2075f9"
 }
 
-TASK [print ansible_become_password] *******************************************
+TASK [Print ansible_become_password] *******************************************
 ok: [server01] => {
-    "changed": false,
-    "msg": "sprain-doorpost-stylus-decent-strangely"
+    "msg": "uncurled-subtitle-unsocial-tightness-obstruct"
 }
 ok: [server02] => {
-    "changed": false,
-    "msg": "pastrami-bullpen-recast-shallot-tinsmith"
+    "msg": "plethora-plod-jaybird-stopping-eternity"
 }
 
-TASK [grep authentication string from /var/log/vault-ssh.log] ******************
+TASK [Grep authentication string from /var/log/vault-ssh.log] ******************
 ok: [server02]
 ok: [server01]
 
-TASK [grep keyboard-interactive from /var/log/auth.log] ************************
-ok: [server01]
+TASK [Grep keyboard-interactive from /var/log/auth.log] ************************
 ok: [server02]
+ok: [server01]
 
-TASK [print authentication string] *********************************************
+TASK [Print authentication string] *********************************************
 ok: [server01] => {
-    "msg": "2022/01/21 14:09:10 [INFO] vagrant@192.168.56.41 authenticated!"
+    "msg": "2023/10/04 20:18:18 [INFO] vagrant@192.168.56.41 authenticated!"
 }
 ok: [server02] => {
-    "msg": "2022/01/21 14:09:10 [INFO] vagrant@192.168.56.42 authenticated!"
+    "msg": "2023/10/04 20:18:16 [INFO] vagrant@192.168.56.42 authenticated!"
 }
 
-TASK [print keyboard-interactive] **********************************************
+TASK [Print keyboard-interactive] **********************************************
 ok: [server01] => {
-    "msg": "Jan 21 14:09:10 ubuntu-focal sshd[39724]: Accepted keyboard-interactive/pam for vagrant from 192.168.56.40 port 55454 ssh2"
+    "msg": "Oct  4 20:18:18 ubuntu-jammy sshd[4125]: Accepted keyboard-interactive/pam for vagrant from 192.168.56.39 port 55592 ssh2"
 }
 ok: [server02] => {
-    "msg": "Jan 21 14:09:10 ubuntu-focal sshd[31384]: Accepted keyboard-interactive/pam for vagrant from 192.168.56.40 port 41604 ssh2"
+    "msg": "Oct  4 20:18:16 ubuntu-jammy sshd[4441]: Accepted keyboard-interactive/pam for vagrant from 192.168.56.39 port 49700 ssh2"
 }
 
 PLAY RECAP *********************************************************************
