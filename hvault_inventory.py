@@ -117,7 +117,7 @@ def get_ssh_certificate_validity_dates(cert_path: str) -> bool:
         capture_output=True,
         text=True,
         check=False,
-        shell=False,
+        shell=False,  # noqa: S603
     )
 
     is_valid = False
