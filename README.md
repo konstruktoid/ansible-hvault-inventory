@@ -14,31 +14,33 @@ set up OTP SSH authentication.
 In addition to SSH OTP, instructions on how to rotate local user passwords are
 available in [part 2](./random_password.md).
 
+In [part 3](./ssh_certificates.md) [signed SSH Certificates](https://developer.hashicorp.com/vault/docs/secrets/ssh/signed-ssh-certificates) are added to the inventory.
+
 ## Usage
 
 ```console
-usage: hvault_inventory.py [-h] [-l] [-m MOUNT] [-o] [-p] [-s SECRET]
-
 Dynamic HashiCorp Vault inventory.
 
-options:
-  -h, --help            show this help message and exit
-  -l, --list            print the inventory
-  -m MOUNT, --mount MOUNT
-                        KV backend mount path
-  -o, --otp-only        show only SSH OTP information
-  -p, --password-only   show only local password information
-  -s SECRET, --secret SECRET
-                        KV secret path
+This script generates an inventory of hosts from HashiCorp Vault
+and outputs it in JSON format for use with Ansible.
 
-version: 0.1.0
+Usage:
+    python hvault_inventory.py [-h] [-l] [-m MOUNT] [-a ANSIBLE_HOSTS] [-u USER_KEYS]
+
+Options:
+    -h, --help              Show the help message and exit.
+    -l, --list              Print the inventory.
+    -m MOUNT, --mount MOUNT
+                            KV backend mount path (default: secret).
+    -a ANSIBLE_HOSTS, --ansible-hosts ANSIBLE_HOSTS
+                            K/V path to the Ansible hosts (default: ansible-hosts).
+    -u USER_KEYS, --user-keys USER_KEYS
+                            K/V path to user public keys (default: user-keys).
 ```
 
 ### Environment variables
 
 `VAULT_MOUNT` which is the KV backend mount path with default "secret".
-
-`VAULT_SECRET` which is the KV secret path with default "ansible-hosts".
 
 `USER` sets the `ansible_user` variable, if `ansible_user` is not set.
 
@@ -131,6 +133,23 @@ all:
           ansible_user: vagrant
 ```
 
+#### SSH certificates
+
+```sh
+all:
+  children:
+    vault_hosts:
+      hosts:
+        server01:
+          ansible_host: 192.168.56.41
+          ansible_ssh_private_key_file: /home/vagrant/.ssh/ansible_vagrant_cert.pub
+          ansible_user: vagrant
+        server02:
+          ansible_host: 192.168.56.42
+          ansible_ssh_private_key_file: /home/vagrant/.ssh/ansible_vagrant_cert.pub
+          ansible_user: vagrant
+```
+
 ## Scripts and policies
 
 Password rotation and SSH helper scripts are available in the [./scripts](./scripts/)
@@ -150,6 +169,8 @@ directory.
 [Vault KV Secrets Engine](https://www.vaultproject.io/docs/secrets/kv)
 
 [Vault One-Time SSH Password](https://learn.hashicorp.com/tutorials/vault/ssh-otp)
+
+[Signed SSH Certificates](https://developer.hashicorp.com/vault/docs/secrets/ssh/signed-ssh-certificates)
 
 [scarolan/painless-password-rotation](https://github.com/scarolan/painless-password-rotation)
 
