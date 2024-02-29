@@ -3,8 +3,8 @@
 `hvault_inventory.py` is a [Ansible](https://www.ansible.com/) [dynamic inventory](https://docs.ansible.com/ansible/latest/user_guide/intro_dynamic_inventory.html)
 script that supports a basic K/V setup (`hostname`:`ip`) but also supports
 [Vault One-Time SSH Password](https://learn.hashicorp.com/tutorials/vault/ssh-otp)
-functionality and the [Vault Password Generator](https://github.com/sethvargo/vault-secrets-gen)
-plugin for local password rotation.
+functionality, the [Vault Password Generator](https://github.com/sethvargo/vault-secrets-gen)
+plugin for local password rotation and  [signed SSH Certificates](https://developer.hashicorp.com/vault/docs/secrets/ssh/signed-ssh-certificates).
 
 ## Documentation
 
@@ -14,7 +14,7 @@ set up OTP SSH authentication.
 In addition to SSH OTP, instructions on how to rotate local user passwords are
 available in [part 2](./random_password.md).
 
-In [part 3](./ssh_certificates.md) [signed SSH Certificates](https://developer.hashicorp.com/vault/docs/secrets/ssh/signed-ssh-certificates) are added to the inventory.
+In [part 3](./ssh_certificates.md) signed SSH Certificates are added to the inventory.
 
 ## Usage
 
