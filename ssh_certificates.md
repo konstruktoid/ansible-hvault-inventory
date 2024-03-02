@@ -6,7 +6,12 @@ Do not use any of this without testing in a non-operational environment.
 
 ## In summary
 
-- Use [signed SSH Certificates](https://developer.hashicorp.com/vault/docs/secrets/ssh/signed-ssh-certificates) for Ansible connections
+`hvault_inventory.py` adds support for [signed SSH Certificates](https://developer.hashicorp.com/vault/docs/secrets/ssh/signed-ssh-certificates)
+by reading the user public key stored in the Vault K/V secret engine, signs it,
+and then saves it as `~/.ssh/ansible_{ANSIBLE_USER}_cert.pub`.
+
+Every time the inventory script is used, the script checks if the certificate
+is valid and will renew it if it isn't.
 
 ## Vault and host configuration
 
@@ -14,7 +19,7 @@ See [part one](./ssh_otp.md) for configuration of the KV Secrets Engine, where
 we added the names and IP addresses of the two hosts that will be managed by Ansible.
 
 ```sh
-$ ansible-inventory -i /vagrant/hvault_inventory.py --list --yaml
+$ ansible-inventory -i hvault_inventory.py --list --yaml
 all:
   children:
     vault_hosts:
@@ -67,13 +72,15 @@ $ echo 'TrustedUserCAKeys /etc/ssh/trusted-user-ca-keys.pem' | sudo tee /etc/ssh
 $ sudo systemctl restart sshd
 ```
 
-On `admin`:
+On the `admin` machine, and if you're using `Vagrant` the private key can be located using `vagrant ssh-config admin | grep 'IdentityFile' | awk '{print $NF}'`.
+
 ```sh
 $ export VAULT_ADDR='http://192.168.56.40:8200'
 $ unset VAULT_TOKEN
 $ vault login -method=userpass username=vagrant password=HorsePassport
 Success! You are now authenticated. [...]
 $ export VAULT_TOKEN='hvs.CAESIByrr...'
+$ ssh-keygen -y -f ~/.ssh/id_ed25519 > ~/.ssh/id_ed25519.pub
 $ vault write -field=signed_key ssh-client-signer/sign/ssh-certs public_key=@$HOME/.ssh/id_ed25519.pub | ssh-keygen -Lf -
 (stdin):1:
         Type: ssh-ed25519-cert-v01@openssh.com user certificate
@@ -88,7 +95,7 @@ $ vault write -field=signed_key ssh-client-signer/sign/ssh-certs public_key=@$HO
         Extensions:
                 permit-pty
 $ vault write -field=signed_key ssh-client-signer/sign/ssh-certs public_key=@$HOME/.ssh/id_ed25519.pub > .ssh/id_ed25519-cert.pub
-$ ssh 192.16856.41 'sudo journalctl -u ssh | grep ED25519-CERT'
+$ ssh 192.168.56.41 'sudo journalctl -u ssh | grep ED25519-CERT'
 Feb 28 14:59:42 server01 sshd[11586]: Accepted publickey for vagrant from 192.168.56.39 port 55998 ssh2: ED25519-CERT SHA256:t3/0DcADFGwSgZVfK1fd6qqofzDk3dYfJErmnUq9ABU ID vault-userpass-vagrant-b77ff40dc003146c1281955f2b57ddeaaaa87f30e4ddd61f244ae69d4abd0015 (serial 7227259757330624117) CA RSA SHA256:U65qkOIWAOfbU1wbFY/pBcMzSmAA64RSQp4oXP2X9Ag
 $ ssh 192.168.56.42 'sudo journalctl -u ssh | grep ED25519-CERT'
 Feb 28 14:59:48 server02 sshd[11695]: Accepted publickey for vagrant from 192.168.56.39 port 60950 ssh2: ED25519-CERT SHA256:t3/0DcADFGwSgZVfK1fd6qqofzDk3dYfJErmnUq9ABU ID vault-userpass-vagrant-b77ff40dc003146c1281955f2b57ddeaaaa87f30e4ddd61f244ae69d4abd0015 (serial 7227259757330624117) CA RSA SHA256:U65qkOIWAOfbU1wbFY/pBcMzSmAA64RSQp4oXP2X9Ag
@@ -117,10 +124,15 @@ $ vault kv get -field=vagrant -mount=secret user-keys | base64 -d
 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINGUK3fVhpzejdnQafOhYIuUs/8tdMYajuQ3nryJm3i/ vagrant
 ```
 
-Run test playbook:
+Remove `~/.ssh/authorized_keys` on `server01` and `server02`.
+
+On `admin`, add the private key and run the test playbook:
 
 ```
-$ ansible-playbook -i /vagrant/hvault_inventory.py /vagrant/playbook.yml
+$ ssh-add .ssh/id_ed25519
+Identity added: .ssh/id_ed25519 (vagrant)
+Certificate added: .ssh/id_ed25519-cert.pub (vault-userpass-vagrant-2cbb21473e3f14de146cb8ec5be0c75c9e301fa52e56e16b5d2d29435e4f409c)
+$ ansible-playbook -i hvault_inventory.py playbook.yml
 
 PLAY [Test Hashicorp Vault dynamic inventory] **********************************************************
 
@@ -184,4 +196,5 @@ ok: [server02] => {
 
 PLAY RECAP *********************************************************************************************
 server01                   : ok=5    changed=0    unreachable=0    failed=0    skipped=6    rescued=0    ignored=0
-server02                   : ok=5    changed=0    unreachable=0    failed=0    skipped=6    rescued=0```
+server02                   : ok=5    changed=0    unreachable=0    failed=0    skipped=6    rescued=0
+```

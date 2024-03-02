@@ -136,7 +136,7 @@ identity_policies      []
 policies               ["ansible" "default" "linuxadmin"]
 token_meta_username    vagrant
 $ export VAULT_TOKEN='hvs.CAESILn3hivHCO8UNJmAxGuQjf2RNsj9Y0E_SPMklriwU42FGh4KHGh2cy44NXQ1b3lIOTRFUTFRdGVSNm1LUG9ZNDE'
-$ ansible-inventory -i /vagrant/hvault_inventory.py --list --yaml
+$ ansible-inventory -i hvault_inventory.py --list --yaml
 all:
   children:
     vault_hosts:
@@ -153,7 +153,7 @@ all:
           ansible_password: 6b7e121d-01db-bea9-10e3-112fc4eb21b6
           ansible_port: 22
           ansible_user: vagrant
-$ ansible-playbook -i /vagrant/hvault_inventory.py /vagrant/playbook.yml
+$ ansible-playbook -i hvault_inventory.py playbook.yml
 
 PLAY [Test Hashicorp Vault dynamic inventory] **********************************
 

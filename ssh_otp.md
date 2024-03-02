@@ -9,7 +9,7 @@ functionality to create a one-time password every time Ansible makes a SSH
 connection into a managed host.
 
 In addition to SSH OTP, instructions on how to rotate local user passwords are
-available in [part 2](./random_password.md).
+available in [part two](./random_password.md).
 
 If you don't want to spend the time to
 [install Vault](https://learn.hashicorp.com/tutorials/vault/getting-started-install),
@@ -34,7 +34,7 @@ libraries to communicate with the Vault server and generate a [dynamic inventory
 for use with Ansible.
 
 `hvault_inventory.py` reads a Vault path, `secret/ansible-hosts` by default,
-to get the list of managed hosts (`hostname`:`ip`), then uses the IP Addresses
+to get the list of managed hosts (`hostname:ip`), then uses the IP Addresses
 to write `/ssh/creds/otp_key_role` and retrive the created SSH OTP credentials.
 
 For password rotation the `"linux/" + name + "/" + ANSIBLE_USER + "_creds"` path
@@ -140,6 +140,9 @@ $ python3 hvault_inventory.py --list
 }
 ```
 
+Note that using the root token is [not in any way recommended](https://developer.hashicorp.com/vault/docs/concepts/tokens#root-tokens),
+and is used only for testing.
+
 #### SSH Secrets Engine
 
 In addition to using Vault as a basic inventory, we will use the
@@ -158,8 +161,8 @@ $ vault write ssh/roles/otp_key_role key_type=otp default_user=vagrant cidr_list
 Success! Data written to: ssh/roles/otp_key_role
 ```
 
-Setting `default_user=vagrant` and `cidr_list=192.168.56.0/24` because Vagrant
-and the IP addresses configured.
+Setting `default_user=vagrant` and `cidr_list=192.168.56.0/24` because we're using the Vagrant
+environment and the IP addresses configured.
 
 The [ansible.hcl](./vault_policies/ansible.hcl) policy grants a user the
 capabilites to read, create and update both the list of the Ansible managed
@@ -227,37 +230,24 @@ $ vault-ssh-helper -verify-only -dev -config /etc/vault-ssh-helper.d/config.hcl
 2021/12/02 22:59:47 [INFO] vault-ssh-helper verification successful!
 ```
 
-`sshd` configuration:
+Ensure that `sshd` is configured with the following settings:
 
 ```sh
-$ grep -vE '#|^$' /etc/ssh/sshd_config
-Include /etc/ssh/sshd_config.d/*.conf
-PasswordAuthentication no
-KbdInteractiveAuthentication yes
+echo "ChallengeResponseAuthentication yes
 UsePAM yes
-X11Forwarding yes
-PrintMotd no
-AcceptEnv LANG LC_*
-Subsystem	sftp	/usr/lib/openssh/sftp-server
+PasswordAuthentication no" | sudo tee /etc/ssh/sshd_config.d/99-ssh-otp.conf
 ```
 
-`sshd` PAM configuration:
+Ensure that the `/etc/pam.d/sshd` file has the following settings:
 
 ```sh
+#@include common-auth
 auth requisite pam_exec.so quiet expose_authtok log=/var/log/vault-ssh.log /usr/local/bin/vault-ssh-helper -dev -config=/etc/vault-ssh-helper.d/config.hcl
-auth optional pam_unix.so not_set_pass use_first_pass nodelay
-account    required     pam_nologin.so
-@include common-account
-session [success=ok ignore=ignore module_unknown=ignore default=bad]        pam_selinux.so close
-session    required     pam_loginuid.so
-session    optional     pam_keyinit.so force revoke
-@include common-session
-session    optional     pam_motd.so  motd=/run/motd.dynamic
-session    optional     pam_motd.so noupdate
-session    required     pam_limits.so
-session    required     pam_env.so user_readenv=1 envfile=/etc/default/locale
-session [success=ok ignore=ignore module_unknown=ignore default=bad]        pam_selinux.so open
+auth optional pam_unix.so use_first_pass nodelay
 ```
+
+Note that with the `-dev` option set `vault-ssh-helper` communicates with Vault with TLS disabled.
+This is NOT recommended for production use.
 
 ## Usage
 
