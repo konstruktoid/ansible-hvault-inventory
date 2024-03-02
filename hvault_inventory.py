@@ -1,22 +1,31 @@
 #!/usr/bin/env python3
 # Licensed under the Apache License, Version 2.0
 
-"""Dynamic HashiCorp Vault inventory.
+"""HashiCorp Vault dynamic inventory for Ansible.
 
-This script generates an inventory of hosts from HashiCorp Vault
-and outputs it in JSON format for use with Ansible.
+This script provides a dynamic inventory for Ansible using HashiCorp Vault as the backend.
+It retrieves host information from Vault and generates an inventory JSON that can be used by Ansible.
 
 Usage:
-    python hvault_inventory.py [-l] [-m MOUNT] [-a ANSIBLE_HOSTS] [-u USER_KEYS]
+------
+python hvault_inventory.py [-l] [-a ANSIBLE_HOSTS] [-c CERT_PATH] [-m MOUNT] [-u USER_KEYS]
 
 Options:
-    -l, --list              Print the inventory.
-    -m MOUNT, --mount MOUNT
-                            KV backend mount path (default: secret).
-    -a ANSIBLE_HOSTS, --ansible-hosts ANSIBLE_HOSTS
-                            K/V path to the Ansible hosts (default: ansible-hosts).
-    -u USER_KEYS, --user-keys USER_KEYS
-                            K/V path to user public keys (default: user-keys).
+--------
+-l, --list              Print the inventory.
+-a, --ansible-hosts     K/V path to the Ansible hosts (default: ansible-hosts).
+-c, --cert-path         Path to the SSH certificate file (default: ~/.ssh/ansible_{ANSIBLE_USER}_cert.pub).
+-m, --mount             KV backend mount path (default: secret).
+-u, --user-keys         K/V path to user public keys (default: user-keys).
+
+Example:
+-------
+python3 hvault_inventory.py --list
+
+This will print the generated inventory JSON.
+
+Version: 0.1.0
+
 """
 
 import argparse
@@ -62,15 +71,21 @@ parser.add_argument(
 )
 
 parser.add_argument(
-    "-m",
-    "--mount",
-    help="KV backend mount path, default: secret",
-)
-
-parser.add_argument(
     "-a",
     "--ansible-hosts",
     help="K/V path to the Ansible hosts, default: ansible-hosts",
+)
+
+parser.add_argument(
+    "-c",
+    "--cert-path",
+    help="Path to the SSH certificate file, default: ~/.ssh/ansible_{ANSIBLE_USER}_cert.pub",
+)
+
+parser.add_argument(
+    "-m",
+    "--mount",
+    help="KV backend mount path, default: secret",
 )
 
 parser.add_argument(
@@ -208,7 +223,11 @@ for host in hosts_read_response["data"]["data"]:
     except hvac.exceptions.Forbidden:
         pass
 
-    ssh_cert_path = Path.home() / ".ssh" / f"ansible_{ANSIBLE_USER}_cert.pub"
+    ssh_cert_path = (
+        args.cert_path
+        if args.cert_path
+        else Path.home() / ".ssh" / f"ansible_{ANSIBLE_USER}_cert.pub"
+    )
     vault_cert_path = True
     if ssh_cert_path.exists():
         valid_ssh_cert = get_ssh_certificate_validity_dates(ssh_cert_path)
