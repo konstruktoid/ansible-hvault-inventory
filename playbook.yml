@@ -40,6 +40,16 @@
       changed_when: false
       register: vault_ssh_log
 
+    - name: Grep authentication methods
+      become: true
+      ansible.builtin.shell: |
+        set -o pipefail
+        sshd -T | grep authenticationmethods
+      args:
+        executable: /bin/bash
+      changed_when: false
+      register: ssh_auth_methods
+
     - name: Grep authentication string from /var/log/vault-ssh.log
       become: true
       environment:
@@ -82,6 +92,10 @@
       when:
         - ansible_ssh_private_key_file is defined
 
+    - name: Print authentication methods
+      ansible.builtin.debug:
+        msg: "{{ ssh_auth_methods.stdout }}"
+
     - name: Print authentication string
       ansible.builtin.debug:
         msg: "{{ vault_ssh.stdout }}"
@@ -98,4 +112,4 @@
       ansible.builtin.debug:
         msg: "{{ ssh_cert.stdout }}"
       when:
-        - ssh_cert is defined
+        - ansible_ssh_private_key_file is defined
