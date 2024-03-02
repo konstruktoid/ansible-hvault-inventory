@@ -209,6 +209,7 @@ for host in hosts_read_response["data"]["data"]:
         pass
 
     ssh_cert_path = Path.home() / ".ssh" / f"ansible_{ANSIBLE_USER}_cert.pub"
+    vault_cert_path = True
     if ssh_cert_path.exists():
         valid_ssh_cert = get_ssh_certificate_validity_dates(ssh_cert_path)
     else:
@@ -221,44 +222,49 @@ for host in hosts_read_response["data"]["data"]:
                 path=user_keys,
                 raise_on_deleted_version=True,
             )
-        except hvac.exceptions.InvalidPath as exception_string:
-            print("InvalidPath Exception: ", str(exception_string), file=sys.stderr)
-            sys.exit(1)
+        except hvac.exceptions.InvalidPath:
+            vault_cert_path = False
+        except TypeError:
+            pass
+        except hvac.exceptions.Forbidden:
+            pass
 
-        for user in user_keys_read_response["data"]["data"]:
-            if user == ANSIBLE_USER:
-                public_key_base64 = user_keys_read_response["data"]["data"][user]
-                public_key = base64.b64decode(public_key_base64).decode("utf-8")
+        if vault_cert_path:
+            for user in user_keys_read_response["data"]["data"]:
+                if user == ANSIBLE_USER:
+                    public_key_base64 = user_keys_read_response["data"]["data"][user]
+                    public_key = base64.b64decode(public_key_base64).decode("utf-8")
 
-                post_data = {"public_key": public_key}
-                postfields = urlencode(post_data)
-                buffer = BytesIO()
+                    post_data = {"public_key": public_key}
+                    postfields = urlencode(post_data)
+                    buffer = BytesIO()
 
-                ssh_signer = pycurl.Curl()
-                ssh_signer.setopt(
-                    ssh_signer.URL,
-                    os.environ["VAULT_ADDR"] + "/v1/ssh-client-signer/sign/ssh-certs",
-                )
-                ssh_signer.setopt(ssh_signer.WRITEFUNCTION, buffer.write)
-                ssh_signer.setopt(
-                    ssh_signer.HTTPHEADER,
-                    [
-                        "X-Vault-Request: true",
-                        "X-Vault-Token:" + os.environ["VAULT_TOKEN"],
-                    ],
-                )
-                ssh_signer.setopt(ssh_signer.POSTFIELDS, postfields)
-                ssh_signer.perform()
-                ssh_signer.close()
+                    ssh_signer = pycurl.Curl()
+                    ssh_signer.setopt(
+                        ssh_signer.URL,
+                        os.environ["VAULT_ADDR"]
+                        + "/v1/ssh-client-signer/sign/ssh-certs",
+                    )
+                    ssh_signer.setopt(ssh_signer.WRITEFUNCTION, buffer.write)
+                    ssh_signer.setopt(
+                        ssh_signer.HTTPHEADER,
+                        [
+                            "X-Vault-Request: true",
+                            "X-Vault-Token:" + os.environ["VAULT_TOKEN"],
+                        ],
+                    )
+                    ssh_signer.setopt(ssh_signer.POSTFIELDS, postfields)
+                    ssh_signer.perform()
+                    ssh_signer.close()
 
-                ssh_signer_response = json.loads(buffer.getvalue().decode("utf-8"))
-                ssh_cert = ssh_signer_response["data"]["signed_key"]
-                ssh_cert = ssh_cert.replace("\n", "")
-                ssh_cert_type = public_key.split(" ")[0]
+                    ssh_signer_response = json.loads(buffer.getvalue().decode("utf-8"))
+                    ssh_cert = ssh_signer_response["data"]["signed_key"]
+                    ssh_cert = ssh_cert.replace("\n", "")
+                    ssh_cert_type = public_key.split(" ")[0]
 
-                with Path(ssh_cert_path).open("w") as f:
-                    f.write(ssh_cert)
-                    f.close()
+                    with Path(ssh_cert_path).open("w") as f:
+                        f.write(ssh_cert)
+                        f.close()
 
     if ansible_host:
         inventory["_meta"]["hostvars"][name]["ansible_host"] = ansible_host
@@ -272,7 +278,7 @@ for host in hosts_read_response["data"]["data"]:
         inventory["_meta"]["hostvars"][name][
             "ansible_become_password"
         ] = ANSIBLE_BECOME_PASSWORD
-    if ssh_cert_path.exists() and valid_ssh_cert:
+    if vault_cert_path and ssh_cert_path.exists() and valid_ssh_cert:
         inventory["_meta"]["hostvars"][name]["ansible_ssh_private_key_file"] = str(
             ssh_cert_path,
         )
