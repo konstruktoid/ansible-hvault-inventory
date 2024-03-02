@@ -3,8 +3,8 @@
 
 """HashiCorp Vault dynamic inventory for Ansible.
 
-This script provides a dynamic inventory for Ansible using HashiCorp Vault as the backend.
-It retrieves host information from Vault and generates an inventory JSON that can be used by Ansible.
+This script provides a dynamic inventory for Ansible using HashiCorp Vault as
+the backend.
 
 Usage:
 ------
@@ -229,10 +229,11 @@ for host in hosts_read_response["data"]["data"]:
         else Path.home() / ".ssh" / f"ansible_{ANSIBLE_USER}_cert.pub"
     )
     vault_cert_path = True
-    if ssh_cert_path.exists():
-        valid_ssh_cert = get_ssh_certificate_validity_dates(ssh_cert_path)
-    else:
-        valid_ssh_cert = False
+    valid_ssh_cert = (
+        get_ssh_certificate_validity_dates(ssh_cert_path)
+        if ssh_cert_path.exists()
+        else False
+    )
 
     if not ssh_cert_path.exists() or not valid_ssh_cert:
         try:
