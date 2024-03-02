@@ -19,23 +19,17 @@ In [part three](./ssh_certificates.md) signed SSH Certificates are added to the 
 ## Usage
 
 ```console
-Dynamic HashiCorp Vault inventory.
-
-This script generates an inventory of hosts from HashiCorp Vault
-and outputs it in JSON format for use with Ansible.
-
 Usage:
-    python hvault_inventory.py [-h] [-l] [-m MOUNT] [-a ANSIBLE_HOSTS] [-u USER_KEYS]
+------
+python hvault_inventory.py [-l] [-a ANSIBLE_HOSTS] [-c CERT_PATH] [-m MOUNT] [-u USER_KEYS]
 
 Options:
-    -h, --help              Show the help message and exit.
-    -l, --list              Print the inventory.
-    -m MOUNT, --mount MOUNT
-                            KV backend mount path (default: secret).
-    -a ANSIBLE_HOSTS, --ansible-hosts ANSIBLE_HOSTS
-                            K/V path to the Ansible hosts (default: ansible-hosts).
-    -u USER_KEYS, --user-keys USER_KEYS
-                            K/V path to user public keys (default: user-keys).
+--------
+-l, --list              Print the inventory.
+-a, --ansible-hosts     K/V path to the Ansible hosts (default: ansible-hosts).
+-c, --cert-path         Path to the SSH certificate file (default: ~/.ssh/ansible_{ANSIBLE_USER}_cert.pub).
+-m, --mount             KV backend mount path (default: secret).
+-u, --user-keys         K/V path to user public keys (default: user-keys).
 ```
 
 ### Environment variables
