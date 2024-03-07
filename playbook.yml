@@ -18,12 +18,37 @@
     - name: Print ansible_password
       ansible.builtin.debug:
         msg: "{{ ansible_password }}"
-      when: ansible_password is defined
+      when:
+        - ansible_password is defined
 
     - name: Print ansible_become_password
       ansible.builtin.debug:
         msg: "{{ ansible_become_password }}"
-      when: ansible_become_password is defined
+      when:
+        - ansible_become_password is defined
+
+    - name: Print ansible_ssh_private_key_file
+      ansible.builtin.debug:
+        msg: "{{ ansible_ssh_private_key_file }}"
+      when:
+        - ansible_ssh_private_key_file is defined
+
+    - name: Stat vault-ssh.log
+      become: true
+      ansible.builtin.stat:
+        path: /var/log/vault-ssh.log
+      changed_when: false
+      register: vault_ssh_log
+
+    - name: Grep authentication methods
+      become: true
+      ansible.builtin.shell: |
+        set -o pipefail
+        sshd -T | grep authenticationmethods
+      args:
+        executable: /bin/bash
+      changed_when: false
+      register: ssh_auth_methods
 
     - name: Grep authentication string from /var/log/vault-ssh.log
       become: true
@@ -36,6 +61,8 @@
         executable: /bin/bash
       register: vault_ssh
       changed_when: vault_ssh.rc != 0
+      when:
+        - vault_ssh_log.stat.exists
 
     - name: Grep keyboard-interactive from /var/log/auth.log
       become: true
@@ -48,11 +75,41 @@
         executable: /bin/bash
       register: auth_log
       changed_when: auth_log.rc != 0
+      when:
+        - ansible_password is defined
+
+    - name: Grep keyboard-interactive from /var/log/auth.log
+      become: true
+      environment:
+        PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      ansible.builtin.shell: |
+        set -o pipefail
+        journalctl -u ssh | grep '(serial' | tail -n1
+      args:
+        executable: /bin/bash
+      register: ssh_cert
+      changed_when: ssh_cert.rc != 0
+      when:
+        - ansible_ssh_private_key_file is defined
+
+    - name: Print authentication methods
+      ansible.builtin.debug:
+        msg: "{{ ssh_auth_methods.stdout }}"
 
     - name: Print authentication string
       ansible.builtin.debug:
         msg: "{{ vault_ssh.stdout }}"
+      when:
+        - vault_ssh_log.stat.exists
 
     - name: Print keyboard-interactive
       ansible.builtin.debug:
         msg: "{{ auth_log.stdout }}"
+      when:
+        - ansible_password is defined
+
+    - name: Print cert serials
+      ansible.builtin.debug:
+        msg: "{{ ssh_cert.stdout }}"
+      when:
+        - ansible_ssh_private_key_file is defined

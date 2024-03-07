@@ -1,2 +1,2 @@
-# Ignore T201 `print` found
-ignore = ["T201"]
+line-length = 119
+lint.ignore = ["T201"]
