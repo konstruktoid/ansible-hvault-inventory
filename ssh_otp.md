@@ -161,8 +161,8 @@ $ vault write ssh/roles/otp_key_role key_type=otp default_user=vagrant cidr_list
 Success! Data written to: ssh/roles/otp_key_role
 ```
 
-Setting `default_user=vagrant` and `cidr_list=192.168.56.0/24` because we're using the Vagrant
-environment and the IP addresses configured.
+Setting `default_user=vagrant` and `cidr_list=192.168.56.0/24` because we're
+using the Vagrant environment and the IP addresses configured.
 
 The [ansible.hcl](./vault_policies/ansible.hcl) policy grants a user the
 capabilites to read, create and update both the list of the Ansible managed
@@ -246,8 +246,8 @@ auth requisite pam_exec.so quiet expose_authtok log=/var/log/vault-ssh.log /usr/
 auth optional pam_unix.so use_first_pass nodelay
 ```
 
-Note that with the `-dev` option set `vault-ssh-helper` communicates with Vault with TLS disabled.
-This is NOT recommended for production use.
+Note that with the `-dev` option set `vault-ssh-helper` communicates with Vault
+with TLS disabled. This is NOT recommended for production use.
 
 ## Usage
 
@@ -266,7 +266,7 @@ again. Future Vault requests will automatically use this token.
 
 Key                    Value
 ---                    -----
-token                  hvs.CAESIAOrlcwOteUdSJRK49alyQmBFMGw_dgzn1CZM35gyaZOGh4KHGh2cy5SVUZZTzM1N2U2SXliRGx0Y1pXWnNGMXc
+token                  hvs.CAESIAOrlcwOteUdSJRK49alyQmBFMGw_dgzn1CZM35gya...
 token_accessor         gEcH7AMHezSPnhnpdi9F3sA0
 token_duration         768h
 token_renewable        true
@@ -275,7 +275,7 @@ identity_policies      []
 policies               ["ansible" "default"]
 token_meta_username    vagrant
 
-$ export VAULT_TOKEN='hvs.CAESIAOrlcwOteUdSJRK49alyQmBFMGw_dgzn1CZM35gyaZOGh4KHGh2cy5SVUZZTzM1N2U2SXliRGx0Y1pXWnNGMXc'
+$ export VAULT_TOKEN='hvs.CAESIAOrlcwOteUdSJRK49alyQmBFMGw_dgzn1CZM35gya...
 $ ansible-inventory -i hvault_inventory.py --list
 {
     "_meta": {
@@ -361,13 +361,9 @@ ok: [server02] => {
 
 TASK [Print keyboard-interactive] **********************************************
 ok: [server01] => {
-    "msg": "Oct  4 15:23:41 ubuntu-jammy sshd[2846]: Accepted keyboard-interactive/pam for vagrant from 192.168.56.39 port 44958 ssh2"
+    "msg": "Oct  4 15:23:41 ubuntu-jammy sshd[2846]: Accepted keyboard-interactive/pam...
 }
 ok: [server02] => {
-    "msg": "Oct  4 15:23:39 ubuntu-jammy sshd[3022]: Accepted keyboard-interactive/pam for vagrant from 192.168.56.39 port 45094 ssh2"
+    "msg": "Oct  4 15:23:39 ubuntu-jammy sshd[3022]: Accepted keyboard-interactive/pam...
 }
-
-PLAY RECAP *********************************************************************
-server01                   : ok=6    changed=0    unreachable=0    failed=0    skipped=1    rescued=0    ignored=0
-server02                   : ok=6    changed=0    unreachable=0    failed=0    skipped=1    rescued=0    ignored=0
 ```

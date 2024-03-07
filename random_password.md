@@ -83,7 +83,7 @@ lifetime.
 $ vault token create -period 24h -policy rotate-linux
 Key                  Value
 ---                  -----
-token                hvs.CAESIA4OZQxuA8RSUeBIKrXe7Ui3wtrb0LDR0hb8xPlH2s8NGh4KHGh2cy45S2Zoc3lMS2tlYnp6dDJZTG5qS1VHVkM
+token                hvs.CAESIA4OZQxuA8RSUeBIKrXe7Ui3...
 token_accessor       4I9EZYWOa7LaGh5K6uSpoxO6
 token_duration       24h
 token_renewable      true
@@ -127,7 +127,7 @@ again. Future Vault requests will automatically use this token.
 
 Key                    Value
 ---                    -----
-token                  hvs.CAESILn3hivHCO8UNJmAxGuQjf2RNsj9Y0E_SPMklriwU42FGh4KHGh2cy44NXQ1b3lIOTRFUTFRdGVSNm1LUG9ZNDE
+token                  hvs.CAESILn3hivHCO8UNJmAxGuQjf2RNsj...
 token_accessor         jIdHDHIvHhptlM8druMRdDHN
 token_duration         768h
 token_renewable        true
@@ -135,7 +135,7 @@ token_policies         ["ansible" "default" "linuxadmin"]
 identity_policies      []
 policies               ["ansible" "default" "linuxadmin"]
 token_meta_username    vagrant
-$ export VAULT_TOKEN='hvs.CAESILn3hivHCO8UNJmAxGuQjf2RNsj9Y0E_SPMklriwU42FGh4KHGh2cy44NXQ1b3lIOTRFUTFRdGVSNm1LUG9ZNDE'
+$ export VAULT_TOKEN='hvs.CAESILn3hivHCO8UNJmAxGuQjf2RNsj...
 $ ansible-inventory -i hvault_inventory.py --list --yaml
 all:
   children:
