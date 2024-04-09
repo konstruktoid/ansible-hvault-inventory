@@ -95,6 +95,7 @@ parser.add_argument(
 
 args = parser.parse_args()
 
+
 # Function to read configuration from ansible.cfg
 def read_config_file(config_file):
     config = configparser.ConfigParser()
@@ -126,6 +127,7 @@ def read_config_file(config_file):
 
     return ansible_hosts, mount, vault_address, vault_token, vault_skip_verify
 
+
 # Check if ansible.cfg exists and read configuration
 ansible_cfg = "ansible.cfg"
 ansible_hosts = "ansible-hosts"
@@ -135,7 +137,9 @@ vault_token = os.environ.get("VAULT_TOKEN")
 vault_skip_verify = False
 
 if ansible_cfg and os.path.exists(ansible_cfg):
-    ansible_hosts, mount, vault_address, vault_token, vault_skip_verify = read_config_file(ansible_cfg)
+    ansible_hosts, mount, vault_address, vault_token, vault_skip_verify = (
+        read_config_file(ansible_cfg)
+    )
 
     if vault_address is None:
         vault_address = os.environ.get("VAULT_ADDR")
@@ -143,10 +147,7 @@ if ansible_cfg and os.path.exists(ansible_cfg):
         vault_token = os.environ.get("VAULT_TOKEN")
 
 try:
-    client_args = {
-        "url": vault_address,
-        "token": vault_token
-    }
+    client_args = {"url": vault_address, "token": vault_token}
 
     if vault_skip_verify:
         client_args["verify"] = False
@@ -165,6 +166,7 @@ if "VAULT_MOUNT" in os.environ:
     mount = os.environ["VAULT_MOUNT"]
 
 user_keys = args.user_keys if args.user_keys else "user-keys"
+
 
 def get_ssh_certificate_validity_dates(cert_path: str) -> bool:
     """Get the validity dates of an SSH certificate and check if it is still valid.
