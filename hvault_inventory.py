@@ -127,12 +127,12 @@ def get_ssh_certificate_validity_dates(cert_path: str) -> bool:
         bool: True if the certificate is still valid, False otherwise.
 
     """
-    result = subprocess.run(
+    result = subprocess.run(  # noqa: S603
         ["/usr/bin/ssh-keygen", "-L", "-f", cert_path],
         capture_output=True,
         text=True,
         check=False,
-        shell=False,  # noqa: S603
+        shell=False,
     )
 
     is_valid = False
