@@ -3,8 +3,7 @@
 `hvault_inventory.py` is a [Ansible](https://www.ansible.com/) [dynamic inventory](https://docs.ansible.com/ansible/latest/user_guide/intro_dynamic_inventory.html)
 script that supports a basic K/V setup (`hostname:ip`) but also supports
 [Vault One-Time SSH Password](https://learn.hashicorp.com/tutorials/vault/ssh-otp)
-functionality, the [Vault Password Generator](https://github.com/sethvargo/vault-secrets-gen)
-plugin for local password rotation and [signed SSH Certificates](https://developer.hashicorp.com/vault/docs/secrets/ssh/signed-ssh-certificates).
+functionality, local password rotation and [signed SSH Certificates](https://developer.hashicorp.com/vault/docs/secrets/ssh/signed-ssh-certificates).
 
 ## Documentation
 
@@ -158,7 +157,7 @@ On `server01` and `server02` add the following line to
 `/etc/ssh/sshd_config.d/99-ssh-auth.conf` and restart the SSH server:
 
 ```sh
-~$ echo "AuthenticationMethod keyboard-interactive,publickey" | \
+~$ echo "AuthenticationMethods keyboard-interactive,publickey" | \
     sudo tee /etc/ssh/sshd_config.d/99-ssh-auth.conf
 ```
 
@@ -167,22 +166,22 @@ On the `admin` machine:
 ```sh
 ~$ ssh-add -l
 256 SHA256:LLshRz4/FN4UbLjsW+DHXJ4wH6UuVuFrXS0pQ15PQJw vagrant (ED25519)
-~$ ansible-inventory -i /vagrant/hvault_inventory.py --list --yaml
+$ ansible-inventory -i hvault_inventory.py --list --yaml
 all:
   children:
     vault_hosts:
       hosts:
         server01:
-          ansible_become_password: scallion-paternal-stamp-produce-fiftieth
+          ansible_become_password: d68f2d09-8327-4306-922d-522ebf4e53af
           ansible_host: 192.168.56.41
-          ansible_password: df9a0219-7393-886a-4375-ae40f846b786
+          ansible_password: 9cb98a45-0393-4dab-4fa3-769ad2a509c5
           ansible_port: 22
           ansible_ssh_private_key_file: /home/vagrant/.ssh/ansible_vagrant_cert.pub
           ansible_user: vagrant
         server02:
-          ansible_become_password: clavicle-rebate-wick-tall-trespass
+          ansible_become_password: e3620985-7abb-4c6e-bea6-8e471c1e6dfc
           ansible_host: 192.168.56.42
-          ansible_password: c1f187d6-f817-f2ca-1ba6-e560da7e42db
+          ansible_password: 70bdcfe9-c88b-724a-2164-a8a698c4ba15
           ansible_port: 22
           ansible_ssh_private_key_file: /home/vagrant/.ssh/ansible_vagrant_cert.pub
           ansible_user: vagrant
@@ -209,7 +208,7 @@ root@server01:~#
 Running the test playbook using multiple authentication methods:
 
 ```sh
-~$ ansible-playbook -i /vagrant/hvault_inventory.py /vagrant/playbook.yml
+~$ ansible-playbook -i hvault_inventory.py playbook.yml
 
 PLAY [Test Hashicorp Vault dynamic inventory] **********************************
 
@@ -315,8 +314,6 @@ directory.
 [KV Secrets Engine](https://www.vaultproject.io/docs/secrets/kv)
 
 [scarolan/painless-password-rotation](https://github.com/scarolan/painless-password-rotation)
-
-[sethvargo/vault-secrets-gen](https://github.com/sethvargo/vault-secrets-gen)
 
 [Signed SSH Certificates](https://developer.hashicorp.com/vault/docs/secrets/ssh/signed-ssh-certificates)
 

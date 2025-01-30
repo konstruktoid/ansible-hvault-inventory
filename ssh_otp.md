@@ -13,8 +13,7 @@ available in [part two](./random_password.md).
 
 If you don't want to spend the time to
 [install Vault](https://learn.hashicorp.com/tutorials/vault/getting-started-install),
-the [vault-ssh-helper](https://github.com/hashicorp/vault-ssh-helper) or the
-[vault-secrets-gen](https://github.com/sethvargo/vault-secrets-gen)
+the [vault-ssh-helper](https://github.com/hashicorp/vault-ssh-helper)
 you can use the available [Vagrantfile](https://www.vagrantup.com/) by running
 `vagrant up`.
 
@@ -74,8 +73,6 @@ add the names and IP addresses of the two hosts that will be managed by Ansible.
 On `vault`:
 
 ```sh
-$ vault secrets enable -version=2 kv
-Success! Enabled the kv secrets engine at: kv/
 $ vault kv put -mount=secret ansible-hosts server01=192.168.56.41 server02=192.168.56.42
 ====== Secret Path ======
 secret/data/ansible-hosts
@@ -83,7 +80,7 @@ secret/data/ansible-hosts
 ======= Metadata =======
 Key                Value
 ---                -----
-created_time       2023-10-04T11:45:36.598756026Z
+created_time       2025-01-30T21:39:07.645839328Z
 custom_metadata    <nil>
 deletion_time      n/a
 destroyed          false
@@ -95,7 +92,7 @@ secret/data/ansible-hosts
 ======= Metadata =======
 Key                Value
 ---                -----
-created_time       2023-10-04T11:45:36.598756026Z
+created_time       2025-01-30T21:39:07.645839328Z
 custom_metadata    <nil>
 deletion_time      n/a
 destroyed          false
@@ -308,9 +305,9 @@ $ ansible-inventory -i hvault_inventory.py --list
     }
 }
 $ for repeat in 1 2 3; do ansible-inventory -i hvault_inventory.py --host server01 | jq -r '.ansible_password'; done
-6a1af306-7f63-7098-a1ea-4001262569c4
-65af2950-2770-24f2-712b-3b48281aebdf
-c7d1dc8f-7cc5-7352-be8c-6ec2baf9bcaa
+b368e271-7ccc-53ea-7eff-537a97a1f2f0
+0e4259b4-76dc-f211-5893-3a0e3c54e1e9
+f47b81af-4fc5-d186-48e9-59cf2ce2e3d4
 ```
 
 A sample [Ansible playbook](./playbook.yml) is used for additional verification
@@ -319,51 +316,75 @@ and testing.
 ```sh
 $ ansible-playbook -i hvault_inventory.py playbook.yml
 
-PLAY [Test Hashicorp Vault dynamic inventory] **********************************
+PLAY [Test Hashicorp Vault dynamic inventory] ******************************************************
 
-TASK [Get ssh host keys from vault_hosts group] ********************************
-# 192.168.56.41:22 SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.4
-# 192.168.56.41:22 SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.4
-ok: [server01 -> localhost] => (item=server01)
+TASK [Get ssh host keys from vault_hosts group] ****************************************************
 ok: [server02 -> localhost] => (item=server01)
-# 192.168.56.42:22 SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.4
-# 192.168.56.42:22 SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.4
+ok: [server01 -> localhost] => (item=server01)
 ok: [server02 -> localhost] => (item=server02)
 ok: [server01 -> localhost] => (item=server02)
 
-TASK [Print ansible_password] **************************************************
+TASK [Print ansible_password] **********************************************************************
 ok: [server01] => {
-    "msg": "963a2ec8-7461-1c1a-c44b-f341ffdcaee3"
+    "msg": "31f64122-6b1d-9885-ec53-364ecd52616a"
 }
 ok: [server02] => {
-    "msg": "ad69b55d-ff69-159a-4572-182b1bb4e5b1"
+    "msg": "16fa5ee6-337a-5c7d-9a95-49becdbc0248"
 }
 
-TASK [Print ansible_become_password] *******************************************
+TASK [Print ansible_become_password] ***************************************************************
 skipping: [server01]
 skipping: [server02]
 
-TASK [Grep authentication string from /var/log/vault-ssh.log] ******************
+TASK [Print ansible_ssh_private_key_file] **********************************************************
+skipping: [server01]
+skipping: [server02]
+
+TASK [Stat vault-ssh.log] **************************************************************************
+ok: [server02]
+ok: [server01]
+
+TASK [Grep authentication methods] *****************************************************************
+ok: [server02]
+ok: [server01]
+
+TASK [Grep authentication string from /var/log/vault-ssh.log] **************************************
 ok: [server01]
 ok: [server02]
 
-TASK [Grep keyboard-interactive from /var/log/auth.log] ************************
+TASK [Grep keyboard-interactive from /var/log/auth.log] ********************************************
 ok: [server02]
 ok: [server01]
 
-TASK [Print authentication string] *********************************************
+TASK [Grep keyboard-interactive from /var/log/auth.log] ********************************************
+skipping: [server01]
+skipping: [server02]
+
+TASK [Print authentication methods] ****************************************************************
 ok: [server01] => {
-    "msg": "2023/10/04 15:23:40 [INFO] vagrant@192.168.56.41 authenticated!"
+    "msg": "authenticationmethods any"
 }
 ok: [server02] => {
-    "msg": "2023/10/04 15:23:39 [INFO] vagrant@192.168.56.42 authenticated!"
+    "msg": "authenticationmethods any"
 }
 
-TASK [Print keyboard-interactive] **********************************************
+TASK [Print authentication string] ******************************************************************
 ok: [server01] => {
-    "msg": "Oct  4 15:23:41 ubuntu-jammy sshd[2846]: Accepted keyboard-interactive/pam...
+    "msg": "2025/01/30 22:17:54 [INFO] vagrant@192.168.56.41 authenticated!"
 }
 ok: [server02] => {
-    "msg": "Oct  4 15:23:39 ubuntu-jammy sshd[3022]: Accepted keyboard-interactive/pam...
+    "msg": "2025/01/30 22:17:54 [INFO] vagrant@192.168.56.42 authenticated!"
 }
+
+TASK [Print keyboard-interactive] *******************************************************************
+ok: [server01] => {
+    "msg": "2025-01-30T22:17:54.137334+00:00 vagrant sshd[3186]: Accepted keyboard-interactive/pam...
+}
+ok: [server02] => {
+    "msg": "2025-01-30T22:17:54.083261+00:00 vagrant sshd[3124]: Accepted keyboard-interactive/pam...
+}
+
+TASK [Print cert serials] ***************************************************************************
+skipping: [server01]
+skipping: [server02]
 ```

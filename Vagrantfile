@@ -1,12 +1,12 @@
-Vagrant.configure(2) do |config|
-  config.vbguest.installer_options = { allow_kernel_upgrade: true }
+Vagrant.configure("2") do |config|
   config.vm.provider "virtualbox" do |vb|
     vb.customize ["modifyvm", :id, "--uart1", "0x3F8", "4"]
     vb.customize ["modifyvm", :id, "--uartmode1", "file", File::NULL]
   end
 
   config.vm.define "admin" do |admin|
-    admin.vm.box = "ubuntu/jammy64"
+    admin.ssh.key_type = "ed25519"
+    admin.vm.box = "bento/ubuntu-24.04"
     admin.vm.network "private_network", ip:"192.168.56.39"
     admin.vm.hostname = "admin"
     admin.vm.boot_timeout = 600
@@ -15,7 +15,8 @@ Vagrant.configure(2) do |config|
   end
 
   config.vm.define "vault" do |vault|
-    vault.vm.box = "ubuntu/jammy64"
+    vault.ssh.key_type = "ed25519"
+    vault.vm.box = "bento/ubuntu-24.04"
     vault.vm.network "private_network", ip:"192.168.56.40"
     vault.vm.network "forwarded_port", guest: 8200, host: 8200
     vault.vm.hostname = "vault"
@@ -26,7 +27,8 @@ Vagrant.configure(2) do |config|
 
   (1..2).each do |i|
     config.vm.define "server0#{i}" do |server|
-      server.vm.box = "ubuntu/jammy64"
+      server.ssh.key_type = "ed25519"
+      server.vm.box = "bento/ubuntu-24.04"
       server.vm.network "private_network", ip:"192.168.56.4#{i}"
       server.vm.hostname = "server0#{i}"
       server.vm.boot_timeout = 600
