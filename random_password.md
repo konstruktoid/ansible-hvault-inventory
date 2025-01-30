@@ -13,7 +13,6 @@ Do not use any of this without testing in a non-operational environment.
 ## In summary
 
 - [SSH OTP authentication](./ssh_otp.md)
-- Enable a [Password Generator](https://github.com/sethvargo/vault-secrets-gen)
 - Configure `sudo` to require passwords
 - Rotate the [local user password](https://github.com/scarolan/painless-password-rotation),
   and use it as `ansible_become_password`.
@@ -21,38 +20,6 @@ Do not use any of this without testing in a non-operational environment.
 ## Vault and host configuration
 
 See [part one](./ssh_otp.md) for steps and details.
-
-### Enable the Password Generator
-
-[vault_server_installation.sh](scripts/vault_server_installation.sh)
-is a script that will install Vault and the Password Generator on a host, and
-is used by the available Vagrant images.
-
-If you prefer to do it manually, the documentation is available at
-[sethvargo/vault-secrets-gen](https://github.com/sethvargo/vault-secrets-gen).
-
-Ensure that the `VAULT_ADDR` and `VAULT_TOKEN` values are set on the Vault server.
-
-```sh
-$ grep -Eo '(VAULT_ADDR|Root Token).*' /tmp/vault.log && grep -A2 'plugins are registered' /tmp/vault.log
-VAULT_ADDR='http://192.168.56.40:8200'
-Root Token: hvs.vDkyJoiMWV3JuBn9sqd7g307
-The following dev plugins are registered in the catalog:
-    - vault-secrets-gen
-
-$ export VAULT_ADDR='http://192.168.56.40:8200'
-$ export VAULT_TOKEN='hvs.vDkyJoiMWV3JuBn9sqd7g307'
-```
-
-Enable the `vault-secrets-gen` plugin:
-
-```sh
-$ export SHA256=$(shasum -a 256 "/etc/vault.d/plugins/vault-secrets-gen" | awk '{print $1}')
-$ vault plugin register -sha256="${SHA256}" -command="vault-secrets-gen" secret secrets-gen
-Success! Registered plugin: secrets-gen
-$ vault secrets enable -path="gen" -plugin-name="secrets-gen" plugin
-Success! Enabled the secrets-gen secrets engine at: gen/
-```
 
 ## Password rotation
 
@@ -155,59 +122,79 @@ all:
           ansible_user: vagrant
 $ ansible-playbook -i hvault_inventory.py playbook.yml
 
-PLAY [Test Hashicorp Vault dynamic inventory] **********************************
+PLAY [Test Hashicorp Vault dynamic inventory] *****************************************************
 
-TASK [Get ssh host keys from vault_hosts group] ********************************
-# 192.168.56.41:22 SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.4
-# 192.168.56.41:22 SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.4
+TASK [Get ssh host keys from vault_hosts group] ***************************************************
 ok: [server01 -> localhost] => (item=server01)
 ok: [server02 -> localhost] => (item=server01)
-# 192.168.56.42:22 SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.4
-# 192.168.56.42:22 SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.4
-ok: [server01 -> localhost] => (item=server02)
 ok: [server02 -> localhost] => (item=server02)
+ok: [server01 -> localhost] => (item=server02)
 
-TASK [Print ansible_password] **************************************************
+TASK [Print ansible_password] *********************************************************************
 ok: [server01] => {
-    "msg": "52e11780-81a4-0c21-b31b-0d2f9ffbc147"
+    "msg": "74fef72d-5649-576b-b6bb-c5aa181ecae6"
 }
 ok: [server02] => {
-    "msg": "d8396f42-1305-bd03-0a46-c4dcab2075f9"
+    "msg": "6a6eaf29-51a6-82d2-cea5-541892c4c35b"
 }
 
-TASK [Print ansible_become_password] *******************************************
+TASK [Print ansible_become_password] **************************************************************
 ok: [server01] => {
-    "msg": "uncurled-subtitle-unsocial-tightness-obstruct"
+    "msg": "d68f2d09-8327-4306-922d-522ebf4e53af"
 }
 ok: [server02] => {
-    "msg": "plethora-plod-jaybird-stopping-eternity"
+    "msg": "e3620985-7abb-4c6e-bea6-8e471c1e6dfc"
 }
 
-TASK [Grep authentication string from /var/log/vault-ssh.log] ******************
+TASK [Print ansible_ssh_private_key_file] *********************************************************
+skipping: [server01]
+skipping: [server02]
+
+TASK [Stat vault-ssh.log] *************************************************************************
 ok: [server02]
 ok: [server01]
 
-TASK [Grep keyboard-interactive from /var/log/auth.log] ************************
+TASK [Grep authentication methods] ****************************************************************
 ok: [server02]
 ok: [server01]
 
-TASK [Print authentication string] *********************************************
+TASK [Grep authentication string from /var/log/vault-ssh.log] *************************************
+ok: [server01]
+ok: [server02]
+
+TASK [Grep keyboard-interactive from /var/log/auth.log] *******************************************
+ok: [server02]
+ok: [server01]
+
+TASK [Grep keyboard-interactive from /var/log/auth.log] *******************************************
+skipping: [server01]
+skipping: [server02]
+
+TASK [Print authentication methods] ***************************************************************
 ok: [server01] => {
-    "msg": "2023/10/04 20:18:18 [INFO] vagrant@192.168.56.41 authenticated!"
+    "msg": "authenticationmethods any"
 }
 ok: [server02] => {
-    "msg": "2023/10/04 20:18:16 [INFO] vagrant@192.168.56.42 authenticated!"
+    "msg": "authenticationmethods any"
 }
 
-TASK [Print keyboard-interactive] **********************************************
+TASK [Print authentication string] *****************************************************************
 ok: [server01] => {
-    "msg": "Oct  4 20:18:18 ubuntu-jammy sshd[4125]: Accepted keyboard-interactive/pam for vagrant from 192.168.56.39 port 55592 ssh2"
+    "msg": "2025/01/30 22:39:19 [INFO] vagrant@192.168.56.41 authenticated!"
 }
 ok: [server02] => {
-    "msg": "Oct  4 20:18:16 ubuntu-jammy sshd[4441]: Accepted keyboard-interactive/pam for vagrant from 192.168.56.39 port 49700 ssh2"
+    "msg": "2025/01/30 22:39:19 [INFO] vagrant@192.168.56.42 authenticated!"
 }
 
-PLAY RECAP *********************************************************************
-server01                   : ok=7    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
-server02                   : ok=7    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+TASK [Print keyboard-interactive] *******************************************************************
+ok: [server01] => {
+    "msg": "2025-01-30T22:39:19.913210+00:00 vagrant sshd[4079]: Accepted keyboard-interactive/pam...
+}
+ok: [server02] => {
+    "msg": "2025-01-30T22:39:19.923243+00:00 vagrant sshd[3829]: Accepted keyboard-interactive/pam...
+}
+
+TASK [Print cert serials] ***************************************************************************
+skipping: [server01]
+skipping: [server02]
 ```

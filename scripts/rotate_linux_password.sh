@@ -43,7 +43,7 @@ if ! curl -sS --fail -X POST -H "X-Vault-Token: ${VAULT_TOKEN}" "${VAULT_ADDR}/v
   exit 1
 fi
 
-NEWPASS=$(curl -sS --fail -X POST -H "X-Vault-Token: ${VAULT_TOKEN}" -H "Content-Type: application/json" --data '{"words":"5","separator":"-"}' "${VAULT_ADDR}/v1/gen/passphrase" | jq -r '.data|.value')
+NEWPASS="$(cat /proc/sys/kernel/random/uuid)"
 
 # Create the JSON payload to write to vault
 JSON="{ \"options\": { \"max_versions\": 12 }, \"data\": { \"${USERNAME}\": \"$NEWPASS\" } }"

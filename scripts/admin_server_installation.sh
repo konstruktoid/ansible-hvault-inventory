@@ -2,11 +2,10 @@
 set -eux
 
 apt-get update
-apt-get --assume-yes upgrade
 apt-get --assume-yes install curl jq libcurl4-openssl-dev libssl-dev \
   python3-pip sshpass unzip
 
-python3 -m pip install -U ansible hvac pip pycurl
+python3 -m pip install -U --break-system-packages ansible hvac pycurl
 
 curl -fsSL https://apt.releases.hashicorp.com/gpg |\
   gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
