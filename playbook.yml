@@ -78,7 +78,7 @@
       when:
         - ansible_password is defined
 
-    - name: Grep keyboard-interactive from /var/log/auth.log
+    - name: Grep serial from ssh journal
       become: true
       environment:
         PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
