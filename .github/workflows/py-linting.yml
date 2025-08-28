@@ -1,13 +1,23 @@
 ---
 on: [push, pull_request]
-name: Konstruktoid Python linting
+name: Python linting
 jobs:
-  konstruktoidPythonlinting:
+  python-linting:
     name: Python linting
     runs-on: ubuntu-latest
+    env:
+      VIRTUAL_ENV: .venv
     steps:
       - name: Checkout repository
         uses: actions/checkout@master
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          activate-environment: true
+
+      - name: Install requirements
+        run: uv pip install -r requirements.txt
 
       - name: Konstruktoid Python linting
         uses: konstruktoid/action-pylint@master
