@@ -16,9 +16,6 @@ jobs:
         with:
           activate-environment: true
 
-      - name: Create UV venv
-        run: uv venv
-
       - name: Install requirements
         run: uv pip install -r requirements.txt
 
