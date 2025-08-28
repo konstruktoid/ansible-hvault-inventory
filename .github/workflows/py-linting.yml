@@ -6,6 +6,7 @@ jobs:
     name: Python linting
     runs-on: ubuntu-latest
     env:
+      VIRTUAL_ENV: .venv
       UV_SYSTEM_PYTHON: 1
     steps:
       - name: Checkout repository
@@ -15,7 +16,7 @@ jobs:
         uses: astral-sh/setup-uv@v6
 
       - name: Create UV venv
-        run: uv venv .
+        run: uv venv
 
       - name: Install requirements
         run: uv pip install -r requirements.txt
