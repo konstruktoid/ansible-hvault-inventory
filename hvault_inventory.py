@@ -38,6 +38,7 @@ from io import BytesIO
 from pathlib import Path
 
 import hvac
+import hvac.exceptions
 import pycurl
 
 try:
