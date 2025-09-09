@@ -245,12 +245,13 @@ for host in hosts_read_response["data"]["data"]:
             )
         except hvac.exceptions.InvalidPath:
             vault_cert_path = False
-        except TypeError:
-            pass
-        except hvac.exceptions.Forbidden:
-            pass
+        except TypeError as e:
+            print(f"TypeError: {e}")
+        except hvac.exceptions.Forbidden as e:
+            print(f"Forbidden: {e}")
 
         if vault_cert_path:
+            print(vault_cert_path)
             for user in user_keys_read_response["data"]["data"]:
                 if user == ANSIBLE_USER:
                     public_key_base64 = user_keys_read_response["data"]["data"][user]

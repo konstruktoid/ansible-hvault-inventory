@@ -246,6 +246,8 @@ auth optional pam_unix.so use_first_pass nodelay
 Note that with the `-dev` option set `vault-ssh-helper` communicates with Vault
 with TLS disabled. This is NOT recommended for production use.
 
+Finally restart the `sshd` service.
+
 ## Usage
 
 The following is a step-by-step example on a host that is used as a Ansible

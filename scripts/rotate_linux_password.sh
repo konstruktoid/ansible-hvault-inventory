@@ -43,7 +43,7 @@ if ! curl -sS --fail -X POST -H "X-Vault-Token: ${VAULT_TOKEN}" "${VAULT_ADDR}/v
   exit 1
 fi
 
-NEWPASS="$(cat /proc/sys/kernel/random/uuid)"
+NEWPASS="$(openssl rand -base64 24)"
 
 # Create the JSON payload to write to vault
 JSON="{ \"options\": { \"max_versions\": 12 }, \"data\": { \"${USERNAME}\": \"$NEWPASS\" } }"
