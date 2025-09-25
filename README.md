@@ -20,7 +20,7 @@ In [part three](./ssh_certificates.md) signed SSH Certificates are added to the 
 ```console
 Usage:
 ------
-python hvault_inventory.py [-l] [-a ANSIBLE_HOSTS] [-c CERT_PATH] [-m MOUNT] [-u USER_KEYS]
+python3 hvault_inventory.py [-l] [-a ANSIBLE_HOSTS] [-c CERT_PATH] [-m MOUNT] [-u USER_KEYS]
 
 Options:
 --------
@@ -109,19 +109,18 @@ all:
 $ ansible-inventory -i hvault_inventory.py --list --yaml
 all:
   children:
-    ungrouped: {}
     vault_hosts:
       hosts:
         server01:
-          ansible_become_password: sprain-doorpost-stylus-decent-strangely
+          ansible_become_password: XKeR2wwovX2YDE8xiRw1jylN1Iuz0neD
           ansible_host: 192.168.56.41
-          ansible_password: 3e927f12-90db-d20f-36c9-33b64e8224d7
+          ansible_password: efc10d56-9713-f3c6-c0ae-67c3c1d991d0
           ansible_port: 22
           ansible_user: vagrant
         server02:
-          ansible_become_password: pastrami-bullpen-recast-shallot-tinsmith
+          ansible_become_password: 5BFXsysn6vxTkGigdt89ADIzb3o5ZPh7
           ansible_host: 192.168.56.42
-          ansible_password: a3cc1375-cd26-51ff-21d2-de4ffff4c2e3
+          ansible_password: 914097f3-79cb-5a48-25c4-853ecef7d692
           ansible_port: 22
           ansible_user: vagrant
 ```

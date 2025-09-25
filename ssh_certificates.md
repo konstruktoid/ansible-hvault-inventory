@@ -42,7 +42,7 @@ $ vault write ssh-client-signer/config/ca generate_signing_key=true
 Key           Value
 ---           -----
 public_key    ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC3UPs3h4+tC1...
-$ vault write ssh-client-signer/roles/ssh-certs -<<"EOH"
+$ vault write ssh-client-signer/roles/ssh-certs -<<"EOF"
 {
   "algorithm_signer": "rsa-sha2-512",
   "allow_user_certificates": true,
@@ -55,7 +55,7 @@ $ vault write ssh-client-signer/roles/ssh-certs -<<"EOH"
   "default_user": "vagrant",
   "ttl": "30m0s"
 }
-EOH
+EOF
 $ vault policy write ansible ansible.hcl
 $ vault policy write ssh-certs ssh-certs.hcl
 $ vault auth enable userpass
