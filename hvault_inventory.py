@@ -24,12 +24,12 @@ python3 hvault_inventory.py --list
 
 This will print the generated inventory JSON.
 
-Version: 0.1.0
-
+Version: 0.1.1
 """
 
 import argparse
 import base64
+import configparser
 import os
 import subprocess
 import sys
@@ -51,8 +51,7 @@ try:
 except ImportError:
     from urllib import urlencode
 
-__version__ = "0.1.0"
-
+__version__ = "0.1.1"
 
 inventory = {}
 inventory["vault_hosts"] = []
@@ -97,22 +96,76 @@ parser.add_argument(
 
 args = parser.parse_args()
 
-try:
-    client = hvac.Client(
-        url=os.environ["VAULT_ADDR"],
-        token=os.environ["VAULT_TOKEN"],
+
+# Function to read configuration from ansible.cfg
+def read_config_file(config_file):
+    config = configparser.ConfigParser()
+    config.read(config_file)
+    try:
+        ansible_hosts = config.get("hvault_inventory", "kv_secret_name")
+    except configparser.NoOptionError:
+        ansible_hosts = None
+
+    try:
+        mount = config.get("hvault_inventory", "kv_mount")
+    except configparser.NoOptionError:
+        mount = None
+
+    try:
+        vault_address = config.get("hvault_inventory", "vault_address")
+    except configparser.NoOptionError:
+        vault_address = None
+
+    try:
+        vault_token = config.get("hvault_inventory", "vault_token")
+    except configparser.NoOptionError:
+        vault_token = None
+
+    try:
+        vault_skip_verify = config.getboolean("hvault_inventory", "vault_skip_verify")
+    except configparser.NoOptionError:
+        vault_skip_verify = False
+
+    return ansible_hosts, mount, vault_address, vault_token, vault_skip_verify
+
+
+# Check if ansible.cfg exists and read configuration
+ansible_cfg = "ansible.cfg"
+ansible_hosts = "ansible-hosts"
+mount = "secret"
+vault_address = os.environ.get("VAULT_ADDR")
+vault_token = os.environ.get("VAULT_TOKEN")
+vault_skip_verify = False
+
+if ansible_cfg and os.path.exists(ansible_cfg):
+    ansible_hosts, mount, vault_address, vault_token, vault_skip_verify = (
+        read_config_file(ansible_cfg)
     )
 
+    if vault_address is None:
+        vault_address = os.environ.get("VAULT_ADDR")
+    if vault_token is None:
+        vault_token = os.environ.get("VAULT_TOKEN")
+
+try:
+    client_args = {"url": vault_address, "token": vault_token}
+
+    if vault_skip_verify:
+        client_args["verify"] = False
+
+    client = hvac.Client(**client_args)
+
 except KeyError as error:
-    print("Environment variable " + str(error) + " is missing.", file=sys.stderr)
+    print("Input " + str(error) + " is missing.", file=sys.stderr)
     sys.exit(1)
 
 if not client.is_authenticated():
     print("Client is not authenticated.")
     sys.exit(1)
 
-mount = args.mount if args.mount else os.environ.get("VAULT_MOUNT", "secret")
-ansible_hosts = args.ansible_hosts if args.ansible_hosts else "ansible-hosts"
+if "VAULT_MOUNT" in os.environ:
+    mount = os.environ["VAULT_MOUNT"]
+
 user_keys = args.user_keys if args.user_keys else "user-keys"
 
 
@@ -181,7 +234,7 @@ for host in hosts_read_response["data"]["data"]:
     otp.setopt(otp.POSTFIELDS, postfields)
     otp.setopt(
         otp.HTTPHEADER,
-        ["X-Vault-Request: true", "X-Vault-Token:" + os.environ["VAULT_TOKEN"]],
+        ["X-Vault-Request: true", "X-Vault-Token:" + vault_token],
     )
     otp.perform()
     otp.close()

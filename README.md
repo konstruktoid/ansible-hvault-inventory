@@ -39,6 +39,22 @@ Options:
 
 `VAULT_ADDR` and `VAULT_TOKEN` are the Vault server address and Vault token.
 
+### Ansible configuration file
+
+We can also set the various settings through the Ansible configuration file (`ansible.cfg`).
+
+```ini
+[defaults]
+inventory         = hvault_inventory.py
+
+[hvault_inventory]
+kv_mount          = ansible
+kv_secret_name    = inventory
+vault_address     = https://my-vault-server.com:8200
+vault_token       = <redacted>
+vault_skip_verify = true  # False by default
+```
+
 ### Examples
 
 #### K/V
