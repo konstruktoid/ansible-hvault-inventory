@@ -229,7 +229,7 @@ for host in hosts_read_response["data"]["data"]:
     )
     vault_cert_path = True
     valid_ssh_cert = (
-        get_ssh_certificate_validity_dates(ssh_cert_path)
+        get_ssh_certificate_validity_dates(ssh_cert_path)  # ty: ignore
         if ssh_cert_path.exists()
         else False
     )
