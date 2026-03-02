@@ -111,9 +111,9 @@ if not client.is_authenticated():
     print("Client is not authenticated.")
     sys.exit(1)
 
-mount = args.mount if args.mount else os.environ.get("VAULT_MOUNT", "secret")
-ansible_hosts = args.ansible_hosts if args.ansible_hosts else "ansible-hosts"
-user_keys = args.user_keys if args.user_keys else "user-keys"
+mount = args.mount or os.environ.get("VAULT_MOUNT", "secret")
+ansible_hosts = args.ansible_hosts or "ansible-hosts"
+user_keys = args.user_keys or "user-keys"
 
 
 def get_ssh_certificate_validity_dates(cert_path: str) -> bool:
@@ -225,9 +225,7 @@ for host in hosts_read_response["data"]["data"]:
         pass
 
     ssh_cert_path = (
-        args.cert_path
-        if args.cert_path
-        else Path.home() / ".ssh" / f"ansible_{ANSIBLE_USER}_cert.pub"
+        args.cert_path or Path.home() / ".ssh" / f"ansible_{ANSIBLE_USER}_cert.pub"
     )
     vault_cert_path = True
     valid_ssh_cert = (
